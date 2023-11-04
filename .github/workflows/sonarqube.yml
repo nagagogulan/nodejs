@@ -1,50 +1,53 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-# This workflow helps you trigger a SonarQube analysis of your code and populates
-# GitHub Code Scanning alerts with the vulnerabilities found.
-# (this feature is available starting from SonarQube 9.7, Developer Edition and above)
-
-# 1. Make sure you add a valid GitHub configuration to your SonarQube (Administration > DevOps platforms > GitHub)
-
-# 2. Import your project on SonarQube
-#     * Add your repository as a new project by clicking "Create project" from your homepage.
-#
-# 3. Select GitHub Actions as your CI and follow the tutorial
-#     * a. Generate a new token and add it to your GitHub repository's secrets using the name SONAR_TOKEN
-#          (On SonarQube, click on your avatar on top-right > My account > Security or ask your administrator)
-#
-#     * b. Copy/paste your SonarQube host URL to your GitHub repository's secrets using the name SONAR_HOST_URL
-#
-#     * c. Copy/paste the project Key into the args parameter below
-#          (You'll find this information in SonarQube by following the tutorial or by clicking on Project Information at the top-right of your project's homepage)
-
-# Feel free to take a look at our documentation (https://docs.sonarqube.org/latest/analysis/github-integration/)
-# or reach out to our community forum if you need some help (https://community.sonarsource.com/c/sq/10)
-
-name: SonarQube analysis
+name: SonarQube Analysis
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-permissions:
-  pull-requests: read # allows SonarQube to decorate PRs with analysis results
+    branches:
+      - main # Adjust the branch name to your project's main branch
 
 jobs:
   sonarqube:
     runs-on: ubuntu-latest
-    steps:
-    - name: SonarQube Scan
-      uses: SonarSource/sonarqube-scan-action@<action_version>
-      with:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        # Other action configuration options...
 
-        
-  
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Java
+      uses: actions/setup-java@v1
+      with:
+        java-version: '11' # Adjust the Java version as needed
+
+    - name: Cache SonarQube scanner
+      uses: actions/cache@v2
+      with:
+        path: ${{ runner.workspace }}/sonar-scanner
+        key: sonarqube-${{ runner.os }}-${{ hashFiles('**/sonar-scanner.properties') }}
+        restore-keys: |
+          sonarqube-${{ runner.os }}-
+
+    - name: Download and extract SonarQube scanner
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p ${{ runner.workspace }}/sonar-scanner
+        curl -sSLo /tmp/sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+        unzip -q /tmp/sonar-scanner-cli.zip -d ${{ runner.workspace }}/sonar-scanner
+        chmod +x ${{ runner.workspace }}/sonar-scanner/sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner
+      shell: bash
+
+    - name: Run SonarQube analysis
+      run: |
+        ${{ runner.workspace }}/sonar-scanner/sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner \
+          -Dsonar.projectKey=your_project_key \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=http://your-sonarqube-server:9000 \
+          -Dsonar.login=your-sonar-token
+      env:
+        SONAR_SCANNER_OPTS: -Xmx512m # Adjust the memory as needed
+
+    - name: Upload SonarQube report
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: sonarqube-report
+        path: .scannerwork
