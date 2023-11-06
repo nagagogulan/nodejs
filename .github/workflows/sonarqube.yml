@@ -21,15 +21,6 @@ jobs:
     - name: Install project dependencies
       run: npm install
 
-    - name: Download and extract SonarScanner
-      run: |
-        # Download SonarScanner (replace with the latest version)
-        Invoke-WebRequest -Uri 'https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.2.2564-windows.zip' -OutFile 'sonar-scanner.zip'
-        Expand-Archive -Path 'sonar-scanner.zip' -DestinationPath $Env:USERPROFILE
-        $scannerDir = Join-Path $Env:USERPROFILE 'sonar-scanner-4.7.2.2564-windows'
-        Write-Output "##vso[task.setvariable variable=SCANNER_DIR]$scannerDir"
-      shell: pwsh
-
     - name: Run SonarQube analysis
       run: |
         $scannerDir = $Env:SCANNER_DIR
