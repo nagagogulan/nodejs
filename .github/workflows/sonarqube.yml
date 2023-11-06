@@ -1,25 +1,37 @@
+name: SonarQube Analysis
+
 on:
-  # Trigger analysis when pushing in master or pull requests, and when creating
-  # a pull request. 
   push:
     branches:
-      - master
-  pull_request:
-      types: [opened, synchronize, reopened]
+      - main # Change to your project's main branch
 
-name: SonarQube Scan
 jobs:
   sonarqube:
-    name: SonarQube Trigger
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checking out
-      uses: actions/checkout@master
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
       with:
-        # Disabling shallow clone is recommended for improving relevancy of reporting
-        fetch-depth: 0
-    - name: SonarQube Scan
-      uses: kitabisa/sonarqube-action@v1.2.0
-      with:
-        host: ${{ secrets.SONARQUBE_HOST }}
-        login: ${{ secrets.SONARQUBE_TOKEN }}
+        node-version: '14' # Change to your desired Node.js version
+
+    - name: Install project dependencies
+      run: npm install
+
+    - name: Run SonarQube analysis
+      run: |
+        # Download SonarScanner (replace with the latest version)
+        curl -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.2.2564-linux.zip
+        unzip sonar-scanner.zip
+        chmod +x sonar-scanner-4.7.2.2564-linux/bin/sonar-scanner
+
+        # Run the SonarQube analysis
+        ./sonar-scanner-4.7.2.2564-linux/bin/sonar-scanner
+
+      env:
+        SONAR_SCANNER_OPTS: -Xmx512m # Adjust memory as needed
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Replace with your SonarQube token
+        SONAR_HOST_URL: http://your-sonarqube-server:9000 # Replace with your SonarQube server URL
