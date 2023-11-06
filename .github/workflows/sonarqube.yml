@@ -7,7 +7,7 @@ on:
 
 jobs:
   sonarqube:
-    runs-on: windows-latest # Use the Windows runner
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -27,8 +27,3 @@ jobs:
     
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Replace with your SonarQube token
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-
-
-
-        
