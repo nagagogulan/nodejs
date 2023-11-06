@@ -5,8 +5,7 @@ on:
       - main
       - master
       
-  pull_request:
-      types: [opened, synchronize, reopened]
+ 
 
 name: Main Workflow
 jobs:
