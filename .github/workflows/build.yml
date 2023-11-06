@@ -6,26 +6,9 @@ on:
       - main  # Adjust the branch name as needed
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14  # Adjust the Node.js version as needed
-
-      - name: Install dependencies
-        run: npm install
 
   sonarqube:
     runs-on: ubuntu-latest
-
-    needs: build
-
     steps:
       - name: Set up SonarQube
         uses: SonarSource/setup-sonarqube@v1
