@@ -18,12 +18,6 @@ jobs:
       with:
         node-version: 14  # Adjust the Node.js version as needed
 
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build
-      run: npm run build  # Modify this command if needed for your project
-
   sonarqube:
     runs-on: ubuntu-latest
 
