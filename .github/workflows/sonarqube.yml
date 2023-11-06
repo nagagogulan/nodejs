@@ -1,27 +1,53 @@
-name: Build
+name: Node.js CI with SonarQube
 
 on:
   push:
     branches:
-      - main
+      - main  # Adjust the branch name as needed
 
 jobs:
   build:
-    name: Build
     runs-on: ubuntu-latest
-    permissions: read-all
+
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
- 
-        env:
-          SONAR_TOKEN: squ_546542a50c646fd94274ccc878e9de56402e1ecb
-          SONAR_HOST_URL: http://localhost:9000/
+    - name: Checkout code
+      uses: actions/checkout@v2
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14  # You can adjust the Node.js version as needed
 
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        with:
-              SONAR_HOST_URL: http://localhost:9000/
-        
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build
+      run: npm run build  # Modify this command if needed for your project
+
+    - name: Test
+      run: npm test  # Modify this command if needed for your project
+
+  sonarqube:
+    runs-on: ubuntu-latest
+
+    needs: build
+
+    steps:
+    - name: Set up SonarQube
+      uses: SonarSource/setup-sonarqube@v1
+      with:
+        project-key: ${{ github.repository }}
+        project-name: ${{ github.repository }}
+        project-version: 1.0
+        server-url: ${{ secrets.SONARQUBE_URL }}
+        token: ${{ secrets.SONARQUBE_TOKEN }}
+
+    - name: Run SonarQube analysis
+      run: |
+        npm install -g sonarqube-scanner
+        sonar-scanner
+      env:
+        SONAR_USER_HOME: ${{ runner.temp }}/.sonar
+
+    - name: Check SonarQube status
+      run: sonar-scanner -X -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }} -Dsonar.host.url=${{ secrets.SONARQUBE_URL }}
