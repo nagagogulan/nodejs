@@ -21,6 +21,9 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Build
+      run: npm run build  # Modify this command if needed for your project
+
   sonarqube:
     runs-on: ubuntu-latest
 
@@ -43,5 +46,3 @@ jobs:
       env:
         SONAR_USER_HOME: ${{ runner.temp }}/.sonar
 
-    - name: Check SonarQube status
-      run: sonar-scanner -X -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }} -Dsonar.host.url=${{ secrets.SONARQUBE_URL }}
