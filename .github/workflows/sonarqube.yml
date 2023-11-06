@@ -7,7 +7,7 @@ on:
 
 jobs:
   sonarqube:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest # Use the Windows runner
 
     steps:
     - name: Checkout code
@@ -21,17 +21,20 @@ jobs:
     - name: Install project dependencies
       run: npm install
 
-    - name: Run SonarQube analysis
+    - name: Download and extract SonarScanner
       run: |
         # Download SonarScanner (replace with the latest version)
-        curl -o sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.2.2564-linux.zip
-        unzip sonar-scanner.zip
-        chmod +x sonar-scanner-4.7.2.2564-linux/bin/sonar-scanner
+        Invoke-WebRequest -Uri 'https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.2.2564-windows.zip' -OutFile 'sonar-scanner.zip'
+        Expand-Archive -Path 'sonar-scanner.zip' -DestinationPath $Env:USERPROFILE
+        $scannerDir = Join-Path $Env:USERPROFILE 'sonar-scanner-4.7.2.2564-windows'
+        Write-Output "##vso[task.setvariable variable=SCANNER_DIR]$scannerDir"
+      shell: pwsh
 
-        # Run the SonarQube analysis
-        ./sonar-scanner-4.7.2.2564-linux/bin/sonar-scanner
-
+    - name: Run SonarQube analysis
+      run: |
+        $scannerDir = $Env:SCANNER_DIR
+        $scannerExe = Join-Path $scannerDir 'bin\sonar-scanner.bat'
+        & $scannerExe
       env:
-        SONAR_SCANNER_OPTS: -Xmx512m # Adjust memory as needed
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Replace with your SonarQube token
         SONAR_HOST_URL: http://your-sonarqube-server:9000 # Replace with your SonarQube server URL
